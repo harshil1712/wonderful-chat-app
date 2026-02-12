@@ -1,49 +1,55 @@
-import { useState, useRef, KeyboardEvent } from 'react'
-import { Send } from 'lucide-react'
-import { Button, Surface } from '@cloudflare/kumo'
+import { useState, useRef, KeyboardEvent } from "react";
+import { Send } from "lucide-react";
+import { Button, Surface } from "@cloudflare/kumo";
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void
-  disabled?: boolean
+  sendMessage: (content: string) => void;
+  disabled?: boolean;
 }
 
-export default function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
-  const [message, setMessage] = useState('')
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+export default function ChatInput({
+  sendMessage,
+  disabled = false,
+}: ChatInputProps) {
+  const [message, setMessage] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = () => {
-    const trimmedMessage = message.trim()
+    const trimmedMessage = message.trim();
     if (trimmedMessage && !disabled) {
-      onSendMessage(trimmedMessage)
-      setMessage('')
-      
+      sendMessage(trimmedMessage);
+      setMessage("");
+
       // Reset textarea height
       if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = "auto";
       }
     }
-  }
+  };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit()
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
-  }
+  };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value)
-    
+    setMessage(e.target.value);
+
     // Auto-resize textarea
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }
+  };
 
   return (
     <Surface className="border-t p-4 sticky bottom-0 z-10">
-      <div className="max-w-4xl mx-auto flex items-end gap-3">
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-4xl mx-auto flex items-end gap-3"
+      >
         <textarea
           ref={textareaRef}
           value={message}
@@ -62,7 +68,7 @@ export default function ChatInput({ onSendMessage, disabled = false }: ChatInput
           aria-label="Send message"
           icon={<Send size={20} />}
         />
-      </div>
+      </form>
     </Surface>
-  )
+  );
 }
