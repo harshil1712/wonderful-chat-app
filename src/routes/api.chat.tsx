@@ -31,13 +31,13 @@ export const Route = createFileRoute("/api/chat")({
         let adapter;
         if (modelConfig.provider === "openai") {
           adapter = createOpenAiChat(modelConfig.id as any, {
-            binding: env.AI.gateway("openclaw-pi-demo"),
+            binding: env.AI.gateway("wonderful-chat-gateway"),
           });
         } else {
           // Workers AI
           adapter = createWorkersAiChat(modelConfig.id as any, {
             binding: env.AI,
-            gatewayId: "unified-billling-test",
+            gatewayId: "wonderful-chat-gateway",
           });
         }
 
