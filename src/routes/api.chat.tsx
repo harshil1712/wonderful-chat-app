@@ -1,32 +1,45 @@
-import { chat, toHttpResponse, toServerSentEventsResponse } from "@tanstack/ai";
+import { chat, toServerSentEventsResponse } from "@tanstack/ai";
 import { createOpenAiChat, createWorkersAiChat } from "@cloudflare/tanstack-ai";
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
+import { getModelById } from "@/config/models";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // const adapter = createWorkersAiChat(
-        //   // "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-        //   // "@cf/ibm-granite/granite-4.0-h-micro",
-        //   "@cf/openai/gpt-oss-20b",
-        //   {
-        //     binding: env.AI,
-        //   },
-        // );
+        const body = (await request.json()) as any;
+        const { messages, data } = body;
+        const modelId = data?.model;
+        const conversationId = data?.conversationId;
 
-        // const adapter = createOpenAiChat("gpt-4o", {
-        //   binding: env.AI.gateway("openclaw-pi-demo"),
-        //   cfApiKey: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        // });
+        // Validate model
+        const modelConfig = getModelById(modelId);
+        if (!modelConfig) {
+          return new Response(
+            JSON.stringify({
+              error: `Invalid model: ${modelId}`,
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
 
-        const adapter = createWorkersAiChat("@cf/openai/gpt-oss-20b", {
-          binding: env.AI,
-          gatewayId: "openclaw-pi-demo",
-        });
-
-        const { messages, conversationId } = await request.json();
+        // Create adapter based on provider
+        let adapter;
+        if (modelConfig.provider === "openai") {
+          adapter = createOpenAiChat(modelConfig.id as any, {
+            binding: env.AI.gateway("openclaw-pi-demo"),
+          });
+        } else {
+          // Workers AI
+          adapter = createWorkersAiChat(modelConfig.id as any, {
+            binding: env.AI,
+            gatewayId: "unified-billling-test",
+          });
+        }
 
         try {
           // Create a streaming chat response
@@ -37,8 +50,6 @@ export const Route = createFileRoute("/api/chat")({
             stream: true,
             maxTokens: 131000,
           });
-
-          // return toHttpResponse(stream);
 
           // Convert stream to HTTP response
           return toServerSentEventsResponse(stream);
