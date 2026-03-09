@@ -1,5 +1,9 @@
 import { chat, toServerSentEventsResponse } from "@tanstack/ai";
-import { createOpenAiChat, createWorkersAiChat } from "@cloudflare/tanstack-ai";
+import {
+  createOpenAiChat,
+  createWorkersAiChat,
+  createGeminiChat,
+} from "@cloudflare/tanstack-ai";
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 import { getModelById } from "@/config/models";
@@ -14,7 +18,7 @@ export const Route = createFileRoute("/api/chat")({
         const conversationId = data?.conversationId;
 
         // Validate model
-        const modelConfig = getModelById(modelId);
+        const modelConfig = getModelById("chat", modelId);
         if (!modelConfig) {
           return new Response(
             JSON.stringify({
@@ -31,17 +35,28 @@ export const Route = createFileRoute("/api/chat")({
         let adapter;
         if (modelConfig.provider === "openai") {
           adapter = createOpenAiChat(modelConfig.id as any, {
-            binding: env.AI.gateway("wonderful-chat-gateway"),
+            binding: env.AI.gateway("openclaw-pi-demo"),
+          });
+        } else if (modelConfig.provider === "google") {
+          adapter = createGeminiChat(modelConfig.id as any, {
+            binding: env.AI.gateway("openclaw-pi-demo"),
           });
         } else {
           // Workers AI
           adapter = createWorkersAiChat(modelConfig.id as any, {
             binding: env.AI,
-            gatewayId: "wonderful-chat-gateway",
           });
         }
 
         try {
+          console.log("[api.chat] Starting chat request", {
+            model: modelConfig.id,
+            provider: modelConfig.provider,
+            conversationId,
+            messageCount: messages.length,
+            lastMessage: messages[messages.length - 1]?.role,
+          });
+
           // Create a streaming chat response
           const stream = chat({
             adapter,
@@ -51,9 +66,12 @@ export const Route = createFileRoute("/api/chat")({
             maxTokens: 131000,
           });
 
+          console.log("[api.chat] Chat stream created successfully");
+
           // Convert stream to HTTP response
           return toServerSentEventsResponse(stream);
         } catch (error) {
+          console.error("[api.chat] Error during chat request:", error);
           return new Response(
             JSON.stringify({
               error:

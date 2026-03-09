@@ -9,12 +9,54 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TtsRouteImport } from './routes/tts'
+import { Route as TranscribeRouteImport } from './routes/transcribe'
+import { Route as SummarizeRouteImport } from './routes/summarize'
+import { Route as ImageRouteImport } from './routes/image'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTtsRouteImport } from './routes/api.tts'
+import { Route as ApiTranscribeRouteImport } from './routes/api.transcribe'
+import { Route as ApiImageRouteImport } from './routes/api.image'
 import { Route as ApiChatRouteImport } from './routes/api.chat'
 
+const TtsRoute = TtsRouteImport.update({
+  id: '/tts',
+  path: '/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TranscribeRoute = TranscribeRouteImport.update({
+  id: '/transcribe',
+  path: '/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SummarizeRoute = SummarizeRouteImport.update({
+  id: '/summarize',
+  path: '/summarize',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImageRoute = ImageRouteImport.update({
+  id: '/image',
+  path: '/image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImageRoute = ApiImageRouteImport.update({
+  id: '/api/image',
+  path: '/api/image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -25,37 +67,142 @@ const ApiChatRoute = ApiChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/image': typeof ImageRoute
+  '/summarize': typeof SummarizeRoute
+  '/transcribe': typeof TranscribeRoute
+  '/tts': typeof TtsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/image': typeof ImageRoute
+  '/summarize': typeof SummarizeRoute
+  '/transcribe': typeof TranscribeRoute
+  '/tts': typeof TtsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/image': typeof ImageRoute
+  '/summarize': typeof SummarizeRoute
+  '/transcribe': typeof TranscribeRoute
+  '/tts': typeof TtsRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/image': typeof ApiImageRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat'
+  fullPaths:
+    | '/'
+    | '/image'
+    | '/summarize'
+    | '/transcribe'
+    | '/tts'
+    | '/api/chat'
+    | '/api/image'
+    | '/api/transcribe'
+    | '/api/tts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat'
-  id: '__root__' | '/' | '/api/chat'
+  to:
+    | '/'
+    | '/image'
+    | '/summarize'
+    | '/transcribe'
+    | '/tts'
+    | '/api/chat'
+    | '/api/image'
+    | '/api/transcribe'
+    | '/api/tts'
+  id:
+    | '__root__'
+    | '/'
+    | '/image'
+    | '/summarize'
+    | '/transcribe'
+    | '/tts'
+    | '/api/chat'
+    | '/api/image'
+    | '/api/transcribe'
+    | '/api/tts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ImageRoute: typeof ImageRoute
+  SummarizeRoute: typeof SummarizeRoute
+  TranscribeRoute: typeof TranscribeRoute
+  TtsRoute: typeof TtsRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiImageRoute: typeof ApiImageRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
+  ApiTtsRoute: typeof ApiTtsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tts': {
+      id: '/tts'
+      path: '/tts'
+      fullPath: '/tts'
+      preLoaderRoute: typeof TtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transcribe': {
+      id: '/transcribe'
+      path: '/transcribe'
+      fullPath: '/transcribe'
+      preLoaderRoute: typeof TranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/summarize': {
+      id: '/summarize'
+      path: '/summarize'
+      fullPath: '/summarize'
+      preLoaderRoute: typeof SummarizeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/image': {
+      id: '/image'
+      path: '/image'
+      fullPath: '/image'
+      preLoaderRoute: typeof ImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/image': {
+      id: '/api/image'
+      path: '/api/image'
+      fullPath: '/api/image'
+      preLoaderRoute: typeof ApiImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -70,7 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ImageRoute: ImageRoute,
+  SummarizeRoute: SummarizeRoute,
+  TranscribeRoute: TranscribeRoute,
+  TtsRoute: TtsRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiImageRoute: ApiImageRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
+  ApiTtsRoute: ApiTtsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
