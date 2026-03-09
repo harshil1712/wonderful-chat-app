@@ -2,16 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import ChatMessage from "@/components/ChatMessage";
 import UnifiedInput from "@/components/UnifiedInput";
-import { Surface, Loader, Badge } from "@cloudflare/kumo";
 import { useChat, fetchServerSentEvents } from "@tanstack/ai-react";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
-import { Send, Sparkles } from "lucide-react";
+import { Surface, Badge, Loader } from "@cloudflare/kumo";
 
 export const Route = createFileRoute("/")({ component: ChatPage });
 
 function ChatPage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
-    // Initialize from localStorage or default
     if (typeof window !== "undefined") {
       return (
         localStorage.getItem("selected-chat-model") || getDefaultModelId("chat")
@@ -29,7 +27,6 @@ function ChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -43,70 +40,41 @@ function ChatPage() {
   return (
     <div className="page-root">
       <div className="page-main">
-        <div className="page-container">
-          {/* Empty State */}
+        <div className="page-container" style={{ padding: isEmpty ? '4rem 1.5rem' : '2rem 1.5rem' }}>
           {isEmpty && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] animate-scale-in">
-              <div
-                className="mb-6 p-6 rounded-2xl"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--theme-accent-subtle), transparent)",
-                }}
-              >
-                <Sparkles
-                  size={48}
-                  strokeWidth={1.5}
-                  style={{ color: "var(--theme-accent)" }}
-                />
-              </div>
-              <h2
-                className="text-4xl font-bold mb-4 text-center"
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  color: "var(--theme-text-primary)",
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Let's create something wonderful
+            <div className="empty-state">
+              <h2 className="empty-state-title">
+                Wonderful<br/>Chat.
               </h2>
-              <p
-                className="text-lg text-center max-w-md mb-8"
-                style={{ color: "var(--theme-text-secondary)" }}
-              >
-                Start a conversation with AI. Ask questions, explore ideas, or
-                get help with your work.
+              <p className="empty-state-subtitle mt-8">
+                ARTIFICIAL INTELLIGENCE CONVERSATION INTERFACE
               </p>
             </div>
           )}
 
-          {/* Messages */}
-          {messages.map((message, idx) => (
-            <div
-              key={message.id}
-              className="message-enter"
-              style={{ animationDelay: `${idx * 0.05}s` }}
-            >
-              <ChatMessage message={message} />
+          {!isEmpty && (
+            <div className="flex flex-col gap-8">
+              {messages.map((message, idx) => (
+                <div
+                  key={message.id}
+                  className="message-enter"
+                  style={{ animationDelay: `${idx * 0.05}s` }}
+                >
+                  <ChatMessage message={message} />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
 
           {isLoading && (
-            <div className="flex justify-start mb-4 animate-slide-up">
-              <div className="flex flex-col max-w-[70%] items-start">
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <Badge variant="secondary">Assistant</Badge>
+            <div className="flex justify-start mb-4 mt-8 animate-slide-up w-full">
+              <div className="flex flex-col w-full max-w-3xl items-start">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="rounded-none border border-black uppercase tracking-widest bg-black text-white font-bold">SYSTEM</Badge>
                 </div>
-                <Surface
-                  className="px-5 py-4 rounded-2xl rounded-bl-sm"
-                  style={{
-                    backgroundColor: "var(--theme-bg-elevated)",
-                    border: "1px solid var(--theme-border-light)",
-                    boxShadow: "var(--theme-shadow-sm)",
-                  }}
-                >
+                <div className="py-2">
                   <Loader size="sm" />
-                </Surface>
+                </div>
               </div>
             </div>
           )}
@@ -115,11 +83,11 @@ function ChatPage() {
         </div>
       </div>
 
-      <div className="page-footer">
-        <div className="page-footer-inner">
+      <Surface className="page-footer rounded-none border-t border-black bg-white">
+        <div className="page-footer-inner page-footer-inner-chat">
           <UnifiedInput
             mode="text"
-            placeholder="Type your message..."
+            placeholder="ENTER COMMAND..."
             rows={1}
             value={message}
             onChange={setMessage}
@@ -127,17 +95,16 @@ function ChatPage() {
             defaultModelId={getDefaultModelId("chat")}
             storageKey="selected-chat-model"
             onModelChange={setSelectedModel}
-            actionLabel="Send"
-            actionIcon={<Send size={18} />}
+            actionLabel="Execute"
             onAction={() => sendMessage(message)}
             disabled={isLoading}
             loading={isLoading}
-            loadingLabel="Sending..."
+            loadingLabel="Processing..."
             showKeyboardHints
             submitOnEnter
           />
         </div>
-      </div>
+      </Surface>
     </div>
   );
 }

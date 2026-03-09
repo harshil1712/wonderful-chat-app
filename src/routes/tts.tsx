@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import UnifiedInput from "@/components/UnifiedInput";
-import { Surface } from "@cloudflare/kumo";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
-import { Volume2 } from "lucide-react";
+import { Label, Surface } from "@cloudflare/kumo";
 
 export const Route = createFileRoute("/tts")({ component: TTSPage });
 
@@ -11,41 +10,49 @@ function TTSPage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return (
-        localStorage.getItem("selected-tts-model") || getDefaultModelId("tts")
+        localStorage.getItem("selected-tts-model") ||
+        getDefaultModelId("tts")
       );
     }
     return getDefaultModelId("tts");
   });
 
   const [text, setText] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [audio, setAudio] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!text.trim()) return;
 
-    setIsGenerating(true);
+    setIsLoading(true);
     setError(null);
-    setAudio(null);
+    setAudioUrl(null);
 
     try {
       const response = await fetch("/api/tts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, model: selectedModel }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Speech generation failed");
+        throw new Error("Failed to generate speech");
       }
 
-      const data = (await response.json()) as { audio: string };
-      setAudio(data.audio);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+    } catch (err: any) {
+      console.error("Text-to-speech error:", err);
+      setError(err.message || "An error occurred while generating speech.");
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
@@ -53,48 +60,51 @@ function TTSPage() {
     <div className="page-root">
       <div className="page-main">
         <div className="page-container">
-          {error && <div className="error-card mb-6">{error}</div>}
+          <div className="page-header">
+            <h1 className="page-title">TEXT TO SPEECH.</h1>
+            <p className="page-subtitle">SYNTHESIZE AUDIO FROM TEXT.</p>
+          </div>
 
-          {!audio && (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <Volume2 size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="empty-state-title">Give your words a voice</h2>
-              <p className="empty-state-subtitle">
-                Enter text and hear it spoken aloud with natural-sounding AI voices.
-              </p>
-            </div>
-          )}
+          <Surface className="card-surface mb-8 border border-black rounded-none">
+            <Label htmlFor="tts-input" className="field-label">INPUT TEXT</Label>
+            <UnifiedInput
+              mode="text"
+              inputId="tts-input"
+              placeholder="ENTER TEXT TO SYNTHESIZE..."
+              rows={4}
+              value={text}
+              onChange={setText}
+              models={getModelsForCapability("tts")}
+              defaultModelId={getDefaultModelId("tts")}
+              storageKey="selected-tts-model"
+              onModelChange={setSelectedModel}
+              actionLabel="SYNTHESIZE AUDIO"
+              onAction={handleGenerate}
+              disabled={isLoading || !text.trim()}
+              loading={isLoading}
+              loadingLabel="GENERATING..."
+              showCharCount
+            />
+          </Surface>
 
-          {audio && (
-            <Surface className="result-card">
-              <h3 className="result-title">Generated Audio</h3>
-              <audio controls src={audio} className="w-full" />
+          {error && (
+            <Surface className="error-card animate-scale-in mb-8 bg-black text-white rounded-none border-none">
+              <strong>ERROR:</strong> {error}
             </Surface>
           )}
-        </div>
-      </div>
 
-      <div className="page-footer">
-        <div className="page-footer-inner">
-          <UnifiedInput
-            mode="text"
-            placeholder="Enter the text you want to convert to speech..."
-            rows={4}
-            value={text}
-            onChange={setText}
-            models={getModelsForCapability("tts")}
-            defaultModelId={getDefaultModelId("tts")}
-            storageKey="selected-tts-model"
-            onModelChange={setSelectedModel}
-            actionLabel="Generate Speech"
-            actionIcon={<Volume2 size={18} />}
-            onAction={handleGenerate}
-            disabled={isGenerating}
-            loading={isGenerating}
-            loadingLabel="Generating..."
-          />
+          {audioUrl && (
+            <Surface className="result-card animate-slide-up border border-black rounded-none">
+              <h2 className="result-title">AUDIO OUTPUT</h2>
+              <audio
+                controls
+                src={audioUrl}
+                autoPlay
+                className="w-full mt-4 border border-black shadow-[4px_4px_0_0_#000]"
+                style={{ borderRadius: 0 }}
+              />
+            </Surface>
+          )}
         </div>
       </div>
     </div>

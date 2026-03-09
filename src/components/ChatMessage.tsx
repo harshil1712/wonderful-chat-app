@@ -1,4 +1,3 @@
-import { Surface } from "@cloudflare/kumo";
 import { UIMessage } from "@tanstack/ai-react";
 
 export default function ChatMessage({ message }: { message: UIMessage }) {
@@ -13,42 +12,37 @@ export default function ChatMessage({ message }: { message: UIMessage }) {
   };
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-6`}>
+    <div className={`flex w-full ${isUser ? "justify-end" : "justify-start"} mb-8`}>
       <div
-        className={`flex flex-col max-w-[75%] ${isUser ? "items-end" : "items-start"}`}
+        className={`flex flex-col max-w-3xl w-full ${isUser ? "items-end" : "items-start"}`}
       >
-        <div className="flex items-center gap-2 mb-2 px-1">
+        <div className="flex items-center gap-3 mb-3">
           <span 
-            className="text-xs font-semibold px-2.5 py-1 rounded-full"
+            className="text-xs font-bold px-2 py-0.5"
             style={{
-              backgroundColor: isUser ? 'var(--theme-accent)' : 'var(--theme-surface-hover)',
-              color: isUser ? 'white' : 'var(--theme-text-secondary)',
+              backgroundColor: isUser ? 'var(--theme-text-primary)' : 'var(--theme-surface-hover)',
+              color: isUser ? 'var(--theme-bg-base)' : 'var(--theme-bg-base)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}
           >
-            {isUser ? "You" : "Assistant"}
+            {isUser ? "User" : "System"}
           </span>
           {message.createdAt && (
             <span 
-              className="text-xs"
-              style={{ color: 'var(--theme-text-subtle)' }}
+              className="text-xs font-bold uppercase"
+              style={{ color: 'var(--theme-text-subtle)', letterSpacing: '0.05em' }}
             >
               {formatTime(message.createdAt)}
             </span>
           )}
         </div>
-        <Surface
-          className={`px-5 py-4 rounded-2xl ${
-            isUser
-              ? "rounded-br-sm"
-              : "rounded-bl-sm"
-          }`}
+        
+        <div 
+          className="py-2 w-full"
           style={{
-            background: isUser 
-              ? 'linear-gradient(135deg, var(--theme-accent), var(--theme-accent-light))'
-              : 'var(--theme-bg-elevated)',
-            color: isUser ? 'white' : 'var(--theme-text-primary)',
-            border: isUser ? 'none' : '1px solid var(--theme-border-light)',
-            boxShadow: isUser ? 'var(--theme-shadow)' : 'var(--theme-shadow-sm)',
+            color: 'var(--theme-text-primary)',
+            textAlign: isUser ? 'right' : 'left',
           }}
         >
           {message.parts.map((part, idx) => {
@@ -56,11 +50,11 @@ export default function ChatMessage({ message }: { message: UIMessage }) {
               return (
                 <p
                   key={idx}
-                  className="whitespace-pre-wrap break-words"
+                  className={`whitespace-pre-wrap break-words ${isUser ? "text-xl font-medium" : "text-lg font-normal"}`}
                   style={{
-                    lineHeight: '1.7',
-                    letterSpacing: '0.01em',
-                    fontFamily: 'var(--font-ui)',
+                    lineHeight: '1.6',
+                    fontFamily: isUser ? 'var(--font-heading)' : 'var(--font-ui)',
+                    letterSpacing: isUser ? '-0.02em' : 'normal',
                   }}
                 >
                   {part.content}
@@ -69,7 +63,7 @@ export default function ChatMessage({ message }: { message: UIMessage }) {
             }
             return null;
           })}
-        </Surface>
+        </div>
       </div>
     </div>
   );

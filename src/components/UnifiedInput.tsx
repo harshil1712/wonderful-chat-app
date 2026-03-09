@@ -1,12 +1,13 @@
 import { useState, useRef, KeyboardEvent, useEffect } from "react";
 import type { ModelConfig } from "@/config/models";
 import { Upload } from "lucide-react";
-import { Button, Select } from "@cloudflare/kumo";
+import { Button, Input, Select, Textarea } from "@cloudflare/kumo";
 
 interface UnifiedInputProps {
   mode: "text" | "file";
   placeholder?: string;
   rows?: number;
+  inputId?: string;
   value?: string;
   onChange?: (value: string) => void;
 
@@ -36,8 +37,9 @@ interface UnifiedInputProps {
 
 export default function UnifiedInput({
   mode,
-  placeholder = "Enter your input...",
-  rows = 3,
+  placeholder = "ENTER INPUT...",
+  rows = 1,
+  inputId,
   value = "",
   onChange,
 
@@ -56,7 +58,7 @@ export default function UnifiedInput({
 
   disabled = false,
   loading = false,
-  loadingLabel = "Processing...",
+  loadingLabel = "PROCESSING...",
 
   showCharCount = false,
   showKeyboardHints = false,
@@ -66,11 +68,16 @@ export default function UnifiedInput({
 }: UnifiedInputProps) {
   const [message, setMessage] = useState(value);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    setMessage(value);
+  }, [value]);
 
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setMessage(e.target.value);
-    onChange?.(e.target.value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleInput = (nextValue: string) => {
+    setMessage(nextValue);
+    onChange?.(nextValue);
   };
 
   const handleModelChange = (modelId: string) => {
@@ -97,12 +104,12 @@ export default function UnifiedInput({
 
   const handleFileClick = () => {
     if (!disabled) {
-      onFileSelect?.(null);
+      fileInputRef.current?.click();
     }
   };
 
   const handleAction = () => {
-    if (mode === "text" && submitOnEnter) {
+    if (mode === "text") {
       if (message.trim() && !disabled && !loading) {
         onAction();
       }
@@ -113,72 +120,88 @@ export default function UnifiedInput({
 
   return (
     <div className="unified-input">
-      <div className="unified-input-header">
-        <ModelSelector
-          models={models}
-          defaultModelId={defaultModelId}
-          storageKey={storageKey}
-          onModelChange={handleModelChange}
-          disabled={disabled}
-          variant="compact"
-        />
-      </div>
-
-      <div className="unified-input-body">
+      <div className="unified-input-content">
         {mode === "text" ? (
-          <textarea
+          <Textarea
             ref={textareaRef}
+            id={inputId}
             value={message}
-            onChange={handleInput}
+            onValueChange={handleInput}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
             rows={rows}
-            className="unified-input-body textarea-base"
+            className="unified-input-textarea"
+            style={{ minHeight: rows === 1 ? "48px" : "72px" }}
           />
         ) : (
-          <div
-            className={`unified-input-file-dropzone ${selectedFile ? "has-file" : ""}`}
-            onClick={handleFileClick}
-          >
-            <input
+          <>
+            <Input
+              ref={fileInputRef}
+              id={inputId}
               type="file"
               accept={accept}
               onChange={handleFileChange}
               disabled={disabled}
-              className="hidden"
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden="true"
             />
-            {selectedFile ? (
-              <div className="unified-input-file-info">
-                <Upload size={20} />
-                <span>{selectedFile.name}</span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <Upload size={32} style={{ color: "var(--theme-accent)" }} />
-                <span style={{ color: "var(--theme-text-primary)" }}>
-                  {placeholder}
-                </span>
-              </div>
-            )}
-          </div>
+            <div
+              className={`unified-input-file-dropzone ${selectedFile ? "has-file" : ""}`}
+              onClick={handleFileClick}
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && !disabled) {
+                  e.preventDefault();
+                  handleFileClick();
+                }
+              }}
+            >
+              {selectedFile ? (
+                <div className="unified-input-file-info justify-center">
+                  <Upload size={24} />
+                  <span className="font-heading uppercase tracking-wider">
+                    {selectedFile.name}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4">
+                  <Upload size={48} strokeWidth={1} />
+                  <span className="font-heading uppercase font-bold text-xl tracking-wider">
+                    {placeholder}
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
-      <div className="unified-input-footer">
-        <div className="unified-input-hints">
-          {showKeyboardHints && mode === "text" && (
-            <span>
-              Press <kbd>Enter</kbd> to {submitOnEnter ? "send" : "new line"},{" "}
-              <kbd>Shift + Enter</kbd> for new line
-            </span>
-          )}
-          {showCharCount && mode === "text" && (
-            <span>
-              {message.length} character{message.length !== 1 ? "s" : ""}
-            </span>
-          )}
-          {helperText && <span>{helperText}</span>}
+      <div className="unified-input-bottom">
+        <div className="unified-input-left">
+          <div className="unified-input-model">
+            <ModelSelector
+              models={models}
+              defaultModelId={defaultModelId}
+              storageKey={storageKey}
+              onModelChange={handleModelChange}
+              disabled={disabled}
+            />
+          </div>
+          <div className="unified-input-hints">
+            {showKeyboardHints && mode === "text" && (
+              <span>
+                [ENTER] {submitOnEnter ? "SUBMIT" : "NEW LINE"} • [SHIFT+ENTER]{" "}
+                {submitOnEnter ? "NEW LINE" : "SUBMIT"}
+              </span>
+            )}
+            {showCharCount && mode === "text" && (
+              <span>CHARS: {message.length}</span>
+            )}
+            {helperText && <span>{helperText}</span>}
+          </div>
         </div>
 
         <Button
@@ -187,6 +210,7 @@ export default function UnifiedInput({
           disabled={disabled || loading || (mode === "text" && !message.trim())}
           loading={loading}
           icon={loading ? undefined : actionIcon}
+          className="rounded-none border-2 border-transparent bg-black hover:bg-white hover:text-black hover:border-black font-heading tracking-widest uppercase font-bold"
         >
           {loading ? loadingLabel : actionLabel}
         </Button>
@@ -201,14 +225,12 @@ function ModelSelector({
   storageKey,
   onModelChange,
   disabled = false,
-  variant = "stacked",
 }: {
   models: ModelConfig[];
   defaultModelId: string;
   storageKey: string;
   onModelChange: (modelId: string) => void;
   disabled?: boolean;
-  variant?: "stacked" | "inline" | "compact";
 }) {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     if (typeof window !== "undefined") {
@@ -224,82 +246,22 @@ function ModelSelector({
     }
   }, [selectedModel, onModelChange, storageKey]);
 
-  const currentModel = models.find((m) => m.id === selectedModel);
-  const isInline = variant === "inline";
-  const isCompact = variant === "compact";
-  const containerClassName = isInline
-    ? `min-w-[220px]`
-    : isCompact
-      ? ``
-      : `w-full max-w-4xl mx-auto px-6 py-5 animate-slide-up`;
-  const cardClassName = isInline
-    ? "rounded-2xl px-4 py-3 border flex items-center gap-3"
-    : isCompact
-      ? "rounded-xl px-3 py-2 border flex items-center gap-2"
-      : "rounded-2xl p-5 border";
-
   return (
-    <div className={containerClassName}>
-      <div
-        className={cardClassName}
-        style={{
-          backgroundColor: "var(--theme-bg-elevated)",
-          borderColor: "var(--theme-border)",
-          boxShadow: "var(--theme-shadow-sm)",
-        }}
+    <div className="w-full md:w-auto md:min-w-80">
+      <Select
+        value={selectedModel}
+        onValueChange={(val) => setSelectedModel(val as string)}
+        disabled={disabled}
+        hideLabel
+        className="!rounded-none !border-none !bg-white !text-black"
       >
-        <div
-          className={
-            isInline
-              ? "relative flex-1"
-              : isCompact
-                ? "relative flex-1"
-                : "relative"
-          }
->
-            <Select
-              value={selectedModel}
-              onValueChange={(val) => setSelectedModel(val as string)}
-              disabled={disabled}
-              hideLabel
-            >
-              {models.map((model) => (
-                <Select.Option key={model.id} value={model.id}>
-                  {model.name}
-                  {model.description ? ` - ${model.description}` : ""}
-                </Select.Option>
-              ))}
-            </Select>
-          </div>
-
-        {currentModel && !isInline && !isCompact && (
-          <div className="flex items-center gap-2 mt-3">
-            <span
-              className="text-xs font-semibold px-2.5 py-1 rounded-full"
-              style={{
-                backgroundColor:
-                  currentModel.provider === "openai"
-                    ? "var(--theme-accent-subtle)"
-                    : "var(--theme-surface-hover)",
-                color:
-                  currentModel.provider === "openai"
-                    ? "var(--theme-accent-dark)"
-                    : "var(--theme-text-secondary)",
-              }}
-            >
-              {currentModel.provider === "openai" ? "OpenAI" : "Workers AI"}
-            </span>
-            {currentModel.description && (
-              <span
-                className="text-xs"
-                style={{ color: "var(--theme-text-subtle)" }}
-              >
-                {currentModel.description}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+        {models.map((model) => (
+          <Select.Option key={model.id} value={model.id}>
+            {model.name}
+            {model.description ? ` - ${model.description}` : ""}
+          </Select.Option>
+        ))}
+      </Select>
     </div>
   );
 }

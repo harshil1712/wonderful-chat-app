@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import UnifiedInput from "@/components/UnifiedInput";
-import { Surface } from "@cloudflare/kumo";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
-import { Mic } from "lucide-react";
+import { Label, Surface } from "@cloudflare/kumo";
 
 export const Route = createFileRoute("/transcribe")({
   component: TranscribePage,
@@ -13,66 +12,50 @@ function TranscribePage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return (
-        localStorage.getItem("selected-transcription-model") ||
-        getDefaultModelId("transcription")
+        localStorage.getItem("selected-transcribe-model") ||
+        getDefaultModelId("transcribe")
       );
     }
-    return getDefaultModelId("transcription");
+    return getDefaultModelId("transcribe");
   });
 
-  const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcription, setTranscription] = useState<{
-    text: string;
-    language?: string;
-    duration?: number;
-  } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [transcription, setTranscription] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleTranscribe = async () => {
-    if (!audioFile) return;
+    if (!selectedFile) return;
 
-    setIsTranscribing(true);
+    setIsLoading(true);
     setError(null);
     setTranscription(null);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        const base64Data = base64.split(",")[1];
+      const formData = new FormData();
+      formData.append("audio", selectedFile);
+      formData.append("model", selectedModel);
 
-        const response = await fetch("/api/transcribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            audio: base64Data,
-            model: selectedModel,
-          }),
-        });
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
 
-        if (!response.ok) {
-          throw new Error("Transcription failed");
-        }
+      if (!response.ok) {
+        throw new Error("Failed to transcribe audio");
+      }
 
-        const data = (await response.json()) as {
-          text: string;
-          language?: string;
-          duration?: number;
-        };
-        setTranscription(data);
-        setIsTranscribing(false);
-      };
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      reader.onerror = () => {
-        setError("Failed to read audio file");
-        setIsTranscribing(false);
-      };
-
-      reader.readAsDataURL(audioFile);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      setIsTranscribing(false);
+      setTranscription(data.text);
+    } catch (err: any) {
+      console.error("Transcription error:", err);
+      setError(err.message || "An error occurred during transcription.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,70 +63,50 @@ function TranscribePage() {
     <div className="page-root">
       <div className="page-main">
         <div className="page-container">
-          {error && <div className="error-card mb-6">{error}</div>}
+          <div className="page-header">
+            <h1 className="page-title">TRANSCRIPTION.</h1>
+            <p className="page-subtitle">AUDIO TO TEXT CONVERSION.</p>
+          </div>
 
-          {!transcription && (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <Mic size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="empty-state-title">Transform speech to text</h2>
-              <p className="empty-state-subtitle">
-                Upload an audio file and let AI convert spoken words into written text.
-              </p>
-            </div>
+          <Surface className="card-surface mb-8 border border-black rounded-none">
+            <Label htmlFor="audio-file-input" className="field-label">AUDIO FILE INPUT</Label>
+            <UnifiedInput
+              mode="file"
+              inputId="audio-file-input"
+              accept="audio/*"
+              placeholder="DRAG AUDIO OR CLICK TO UPLOAD"
+              onFileSelect={setSelectedFile}
+              selectedFile={selectedFile}
+              models={getModelsForCapability("transcribe")}
+              defaultModelId={getDefaultModelId("transcribe")}
+              storageKey="selected-transcribe-model"
+              onModelChange={setSelectedModel}
+              actionLabel="TRANSCRIBE"
+              onAction={handleTranscribe}
+              disabled={isLoading || !selectedFile}
+              loading={isLoading}
+              loadingLabel="PROCESSING AUDIO..."
+              helperText="SUPPORTED FORMATS: MP3, WAV, M4A, OGG"
+            />
+          </Surface>
+
+          {error && (
+            <Surface className="error-card animate-scale-in mb-8 bg-black text-white rounded-none border-none">
+              <strong>ERROR:</strong> {error}
+            </Surface>
           )}
 
           {transcription && (
-            <Surface className="result-card">
-              <h3 className="result-title">Transcription Result</h3>
-              <div
-                className="rounded-lg p-4 border mb-4"
-                style={{
-                  backgroundColor: "var(--theme-surface)",
-                  borderColor: "var(--theme-border)",
-                }}
+            <Surface className="result-card animate-slide-up border border-black rounded-none">
+              <h2 className="result-title">TRANSCRIPT OUTPUT</h2>
+              <div 
+                className="whitespace-pre-wrap text-lg font-ui" 
+                style={{ lineHeight: '1.6' }}
               >
-                <p className="whitespace-pre-wrap" style={{ lineHeight: 1.7 }}>
-                  {transcription.text}
-                </p>
+                {transcription}
               </div>
-              {(transcription.language || transcription.duration) && (
-                <div
-                  className="flex gap-4 text-sm"
-                  style={{ color: "var(--theme-text-subtle)" }}
-                >
-                  {transcription.language && (
-                    <span>Language: {transcription.language}</span>
-                  )}
-                  {transcription.duration && (
-                    <span>Duration: {transcription.duration.toFixed(1)}s</span>
-                  )}
-                </div>
-              )}
             </Surface>
           )}
-        </div>
-      </div>
-
-      <div className="page-footer">
-        <div className="page-footer-inner">
-          <UnifiedInput
-            mode="file"
-            accept="audio/*"
-            selectedFile={audioFile}
-            onFileSelect={setAudioFile}
-            models={getModelsForCapability("transcription")}
-            defaultModelId={getDefaultModelId("transcription")}
-            storageKey="selected-transcription-model"
-            onModelChange={setSelectedModel}
-            actionLabel="Transcribe"
-            actionIcon={<Mic size={18} />}
-            onAction={handleTranscribe}
-            disabled={isTranscribing}
-            loading={isTranscribing}
-            loadingLabel="Transcribing..."
-          />
         </div>
       </div>
     </div>

@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import UnifiedInput from "@/components/UnifiedInput";
-import { Surface } from "@cloudflare/kumo";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
-import { FileText } from "lucide-react";
+import { Label, Surface } from "@cloudflare/kumo";
 
 export const Route = createFileRoute("/summarize")({
   component: SummarizePage,
@@ -13,42 +12,51 @@ function SummarizePage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return (
-        localStorage.getItem("selected-summarization-model") ||
-        getDefaultModelId("summarization")
+        localStorage.getItem("selected-summarize-model") ||
+        getDefaultModelId("summarize")
       );
     }
-    return getDefaultModelId("summarization");
+    return getDefaultModelId("summarize");
   });
 
-  const [text, setText] = useState("");
-  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [inputUrl, setInputUrl] = useState("");
   const [summary, setSummary] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSummarize = async () => {
-    if (!text.trim()) return;
+    if (!inputUrl.trim()) return;
 
-    setIsSummarizing(true);
+    setIsLoading(true);
     setError(null);
     setSummary(null);
 
     try {
       const response = await fetch("/api/summarize", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, model: selectedModel }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: inputUrl,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Summarization failed");
+        throw new Error("Failed to summarize URL");
       }
 
-      const data = (await response.json()) as { summary: string };
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
       setSummary(data.summary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+    } catch (err: any) {
+      console.error("Summarization error:", err);
+      setError(err.message || "An error occurred during summarization.");
     } finally {
-      setIsSummarizing(false);
+      setIsLoading(false);
     }
   };
 
@@ -56,72 +64,52 @@ function SummarizePage() {
     <div className="page-root">
       <div className="page-main">
         <div className="page-container">
-          {error && <div className="error-card mb-6">{error}</div>}
+          <div className="page-header">
+            <h1 className="page-title">SUMMARIZATION.</h1>
+            <p className="page-subtitle">EXTRACT CORE MEANING FROM URLS.</p>
+          </div>
 
-          {!summary && (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <FileText size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="empty-state-title">Distill the essentials</h2>
-              <p className="empty-state-subtitle">
-                Paste long text and get a concise summary that captures the key points.
-              </p>
-            </div>
+          <Surface className="card-surface mb-8 border border-black rounded-none">
+            <Label htmlFor="url-input" className="field-label">
+              URL TO SUMMARIZE
+            </Label>
+            <UnifiedInput
+              mode="text"
+              inputId="url-input"
+              placeholder="HTTPS://..."
+              rows={1}
+              value={inputUrl}
+              onChange={setInputUrl}
+              models={getModelsForCapability("summarize")}
+              defaultModelId={getDefaultModelId("summarize")}
+              storageKey="selected-summarize-model"
+              onModelChange={setSelectedModel}
+              actionLabel="EXTRACT"
+              onAction={handleSummarize}
+              disabled={isLoading}
+              loading={isLoading}
+              loadingLabel="EXTRACTING..."
+              submitOnEnter
+            />
+          </Surface>
+
+          {error && (
+            <Surface className="error-card animate-scale-in mb-8 bg-black text-white rounded-none border-none">
+              <strong>ERROR:</strong> {error}
+            </Surface>
           )}
 
           {summary && (
-            <Surface className="result-card">
-              <h3 className="result-title">Summary</h3>
-              <div
-                className="rounded-lg p-4 border mb-4"
-                style={{
-                  backgroundColor: "var(--theme-surface)",
-                  borderColor: "var(--theme-border)",
-                }}
+            <Surface className="result-card animate-slide-up border border-black rounded-none">
+              <h2 className="result-title">SUMMARY RESULT</h2>
+              <div 
+                className="whitespace-pre-wrap text-lg font-ui" 
+                style={{ lineHeight: '1.6' }}
               >
-                <p className="whitespace-pre-wrap" style={{ lineHeight: 1.7 }}>
-                  {summary}
-                </p>
-              </div>
-              <div
-                className="flex gap-4 text-sm"
-                style={{ color: "var(--theme-text-subtle)" }}
-              >
-                <span>
-                  Original: {text.length} characters ({text.split(/\s+/).length}{" "}
-                  words)
-                </span>
-                <span>
-                  Summary: {summary.length} characters (
-                  {summary.split(/\s+/).length} words)
-                </span>
+                {summary}
               </div>
             </Surface>
           )}
-        </div>
-      </div>
-
-      <div className="page-footer">
-        <div className="page-footer-inner">
-          <UnifiedInput
-            mode="text"
-            placeholder="Paste the text you want to summarize..."
-            rows={6}
-            value={text}
-            onChange={setText}
-            models={getModelsForCapability("summarization")}
-            defaultModelId={getDefaultModelId("summarization")}
-            storageKey="selected-summarization-model"
-            onModelChange={setSelectedModel}
-            actionLabel="Summarize"
-            actionIcon={<FileText size={18} />}
-            onAction={handleSummarize}
-            disabled={isSummarizing}
-            loading={isSummarizing}
-            loadingLabel="Summarizing..."
-            showCharCount
-          />
         </div>
       </div>
     </div>

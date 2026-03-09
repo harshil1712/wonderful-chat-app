@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import UnifiedInput from "@/components/UnifiedInput";
-import { Surface } from "@cloudflare/kumo";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
-import { Sparkles } from "lucide-react";
+import { Label, Surface } from "@cloudflare/kumo";
 
 export const Route = createFileRoute("/image")({ component: ImagePage });
 
@@ -19,34 +18,41 @@ function ImagePage() {
   });
 
   const [prompt, setPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
-    setIsGenerating(true);
+    setIsLoading(true);
     setError(null);
-    setGeneratedImage(null);
+    setImageUrl(null);
 
     try {
       const response = await fetch("/api/image", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, model: selectedModel }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Image generation failed");
+        throw new Error("Failed to generate image");
       }
 
-      const data = (await response.json()) as { image: string };
-      setGeneratedImage(data.image);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setImageUrl(url);
+    } catch (err: any) {
+      console.error("Image generation error:", err);
+      setError(err.message || "An error occurred while generating the image.");
     } finally {
-      setIsGenerating(false);
+      setIsLoading(false);
     }
   };
 
@@ -54,53 +60,49 @@ function ImagePage() {
     <div className="page-root">
       <div className="page-main">
         <div className="page-container">
-          {error && <div className="error-card mb-6">{error}</div>}
+          <div className="page-header">
+            <h1 className="page-title">IMAGE GENERATION.</h1>
+            <p className="page-subtitle">SYNTHESIZE VISUALS FROM TEXT.</p>
+          </div>
 
-          {!generatedImage && (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <Sparkles size={48} strokeWidth={1.5} />
-              </div>
-              <h2 className="empty-state-title">Create stunning visuals</h2>
-              <p className="empty-state-subtitle">
-                Describe the image you want to generate and watch AI bring your ideas to life.
-              </p>
-            </div>
+          <Surface className="card-surface mb-8 border border-black rounded-none">
+            <Label htmlFor="prompt-input" className="field-label">
+              IMAGE PROMPT
+            </Label>
+            <UnifiedInput
+              mode="text"
+              inputId="prompt-input"
+              placeholder="DESCRIBE THE IMAGE..."
+              rows={3}
+              value={prompt}
+              onChange={setPrompt}
+              models={getModelsForCapability("image")}
+              defaultModelId={getDefaultModelId("image")}
+              storageKey="selected-image-model"
+              onModelChange={setSelectedModel}
+              actionLabel="GENERATE"
+              onAction={handleGenerate}
+              disabled={isLoading}
+              loading={isLoading}
+              loadingLabel="SYNTHESIZING..."
+            />
+          </Surface>
+
+          {error && (
+            <Surface className="error-card animate-scale-in mb-8 bg-black text-white rounded-none border-none">
+              <strong>ERROR:</strong> {error}
+            </Surface>
           )}
 
-          {generatedImage && (
-            <Surface className="result-card">
-              <h3 className="result-title">Generated Image</h3>
+          {imageUrl && (
+            <Surface className="result-card animate-slide-up flex justify-center border border-black rounded-none shadow-[8px_8px_0_0_#000]">
               <img
-                src={generatedImage}
-                alt="Generated"
-                className="w-full rounded-lg border"
-                style={{ borderColor: "var(--theme-border)" }}
+                src={imageUrl}
+                alt={prompt}
+                className="max-w-full h-auto"
               />
             </Surface>
           )}
-        </div>
-      </div>
-
-      <div className="page-footer">
-        <div className="page-footer-inner">
-          <UnifiedInput
-            mode="text"
-            placeholder="Describe the image you want to generate..."
-            rows={3}
-            value={prompt}
-            onChange={setPrompt}
-            models={getModelsForCapability("image")}
-            defaultModelId={getDefaultModelId("image")}
-            storageKey="selected-image-model"
-            onModelChange={setSelectedModel}
-            actionLabel="Generate"
-            actionIcon={<Sparkles size={18} />}
-            onAction={handleGenerate}
-            disabled={isGenerating}
-            loading={isGenerating}
-            loadingLabel="Generating..."
-          />
         </div>
       </div>
     </div>
