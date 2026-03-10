@@ -11,7 +11,7 @@ export default function Header() {
         boxShadow: "none",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-8 h-8 bg-black flex items-center justify-center">
             <div className="w-3 h-3 bg-white"></div>

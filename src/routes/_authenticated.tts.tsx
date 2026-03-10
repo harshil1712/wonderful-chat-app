@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/tts")({ component: TTSPage });
+export const Route = createFileRoute("/_authenticated/tts")({ component: TTSPage });
 
 function TTSPage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
@@ -42,12 +42,12 @@ function TTSPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate speech");
+        const errorData = (await response.json()) as { error: string };
+        throw new Error(errorData.error || "Failed to generate speech");
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setAudioUrl(url);
+      const data = (await response.json()) as { audio: string; format: string };
+      setAudioUrl(data.audio);
     } catch (err: any) {
       console.error("Text-to-speech error:", err);
       setError(err.message || "An error occurred while generating speech.");
@@ -80,7 +80,7 @@ function TTSPage() {
               onModelChange={setSelectedModel}
               actionLabel="SYNTHESIZE AUDIO"
               onAction={handleGenerate}
-              disabled={isLoading || !text.trim()}
+              disabled={isLoading}
               loading={isLoading}
               loadingLabel="GENERATING..."
               showCharCount

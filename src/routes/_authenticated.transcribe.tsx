@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/transcribe")({
+export const Route = createFileRoute("/_authenticated/transcribe")({
   component: TranscribePage,
 });
 
@@ -13,10 +13,10 @@ function TranscribePage() {
     if (typeof window !== "undefined") {
       return (
         localStorage.getItem("selected-transcribe-model") ||
-        getDefaultModelId("transcribe")
+        getDefaultModelId("transcription")
       );
     }
-    return getDefaultModelId("transcribe");
+    return getDefaultModelId("transcription");
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -32,24 +32,31 @@ function TranscribePage() {
     setTranscription(null);
 
     try {
-      const formData = new FormData();
-      formData.append("audio", selectedFile);
-      formData.append("model", selectedModel);
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64Audio = btoa(binary);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          audio: base64Audio,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to transcribe audio");
+        const errorData = (await response.json()) as { error: string };
+        throw new Error(errorData.error || "Failed to transcribe audio");
       }
 
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
+      const data = (await response.json()) as { text: string; language: string; duration: number };
       setTranscription(data.text);
     } catch (err: any) {
       console.error("Transcription error:", err);
@@ -77,8 +84,8 @@ function TranscribePage() {
               placeholder="DRAG AUDIO OR CLICK TO UPLOAD"
               onFileSelect={setSelectedFile}
               selectedFile={selectedFile}
-              models={getModelsForCapability("transcribe")}
-              defaultModelId={getDefaultModelId("transcribe")}
+              models={getModelsForCapability("transcription")}
+              defaultModelId={getDefaultModelId("transcription")}
               storageKey="selected-transcribe-model"
               onModelChange={setSelectedModel}
               actionLabel="TRANSCRIBE"

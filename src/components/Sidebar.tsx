@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
-  { name: "Chat", href: "/" },
+  { name: "Chat", href: "/chat" },
   { name: "Image Generation", href: "/image" },
   { name: "Transcription", href: "/transcribe" },
   { name: "Text-to-Speech", href: "/tts" },
@@ -41,7 +41,7 @@ export default function Sidebar() {
               variant="primary"
               className="w-full bg-black text-white font-heading font-bold uppercase tracking-widest text-sm py-4 border-2 border-transparent hover:bg-white hover:text-black hover:border-black transition-colors rounded-none"
               onClick={() => {
-                window.location.href = '/';
+                window.location.href = '/chat';
               }}
             >
               New Thread

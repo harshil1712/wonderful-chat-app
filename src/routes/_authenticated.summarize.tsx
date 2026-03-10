@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/summarize")({
+export const Route = createFileRoute("/_authenticated/summarize")({
   component: SummarizePage,
 });
 
@@ -13,10 +13,10 @@ function SummarizePage() {
     if (typeof window !== "undefined") {
       return (
         localStorage.getItem("selected-summarize-model") ||
-        getDefaultModelId("summarize")
+        getDefaultModelId("summarization")
       );
     }
-    return getDefaultModelId("summarize");
+    return getDefaultModelId("summarization");
   });
 
   const [inputUrl, setInputUrl] = useState("");
@@ -44,13 +44,11 @@ function SummarizePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to summarize URL");
+        const errorData = (await response.json()) as { error: string };
+        throw new Error(errorData.error || "Failed to summarize URL");
       }
 
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      const data = (await response.json()) as { summary: string; model: string };
       setSummary(data.summary);
     } catch (err: any) {
       console.error("Summarization error:", err);
@@ -80,8 +78,8 @@ function SummarizePage() {
               rows={1}
               value={inputUrl}
               onChange={setInputUrl}
-              models={getModelsForCapability("summarize")}
-              defaultModelId={getDefaultModelId("summarize")}
+              models={getModelsForCapability("summarization")}
+              defaultModelId={getDefaultModelId("summarization")}
               storageKey="selected-summarize-model"
               onModelChange={setSelectedModel}
               actionLabel="EXTRACT"

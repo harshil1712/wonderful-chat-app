@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/image")({ component: ImagePage });
+export const Route = createFileRoute("/_authenticated/image")({ component: ImagePage });
 
 function ImagePage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
@@ -42,12 +42,12 @@ function ImagePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate image");
+        const errorData = (await response.json()) as { error: string };
+        throw new Error(errorData.error || "Failed to generate image");
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      setImageUrl(url);
+      const data = (await response.json()) as { image: string; model: string };
+      setImageUrl(data.image);
     } catch (err: any) {
       console.error("Image generation error:", err);
       setError(err.message || "An error occurred while generating the image.");
