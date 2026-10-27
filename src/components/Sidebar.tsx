@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Surface, Button } from "@cloudflare/kumo";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { authClient } from "lib/auth-client";
 
 const navigation = [
   { name: "Chat", href: "/chat" },
@@ -13,6 +14,12 @@ const navigation = [
 
 export default function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    navigate({ to: "/sign-in" });
+  };
 
   return (
     <>
@@ -23,7 +30,11 @@ export default function Sidebar() {
         className="lg:hidden fixed top-4 right-4 z-50 rounded-none border border-black bg-white"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
       >
-        {mobileMenuOpen ? <X size={24} color="black" /> : <Menu size={24} color="black" />}
+        {mobileMenuOpen ? (
+          <X size={24} color="black" />
+        ) : (
+          <Menu size={24} color="black" />
+        )}
       </Button>
 
       <Surface
@@ -41,7 +52,7 @@ export default function Sidebar() {
               variant="primary"
               className="w-full bg-black text-white font-heading font-bold uppercase tracking-widest text-sm py-4 border-2 border-transparent hover:bg-white hover:text-black hover:border-black transition-colors rounded-none"
               onClick={() => {
-                window.location.href = '/chat';
+                window.location.href = "/chat";
               }}
             >
               New Thread
@@ -49,13 +60,11 @@ export default function Sidebar() {
           </div>
 
           <div className="mb-4">
-            <div 
-              className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-black text-black"
-            >
+            <div className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-black text-black">
               Functions
             </div>
           </div>
-          
+
           <div className="flex-1 space-y-2">
             {navigation.map((item) => (
               <Link
@@ -75,6 +84,17 @@ export default function Sidebar() {
               </Link>
             ))}
           </div>
+
+          <div className="pt-4 border-t border-black">
+            <Button
+              variant="secondary"
+              className="w-full rounded-none border border-black bg-white text-black hover:bg-black hover:text-white font-heading font-bold uppercase tracking-widest text-sm"
+              onClick={handleSignOut}
+            >
+              <LogOut size={16} className="mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </Surface>
 
@@ -84,7 +104,7 @@ export default function Sidebar() {
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
-      
+
       <style>{`
         .nav-link-active {
           color: white;

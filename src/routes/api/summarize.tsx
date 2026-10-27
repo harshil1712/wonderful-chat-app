@@ -1,11 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 import { getModelById } from "@/config/models";
+import { requireSession } from "../../../lib/auth.functions";
 
 export const Route = createFileRoute("/api/summarize")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Check authentication
+        try {
+          await requireSession();
+        } catch {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         try {
           const body = (await request.json()) as {
             url: string;
@@ -21,7 +32,7 @@ export const Route = createFileRoute("/api/summarize")({
               {
                 status: 400,
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
           }
 
@@ -40,7 +51,7 @@ export const Route = createFileRoute("/api/summarize")({
               {
                 status: 400,
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
           }
 
@@ -60,7 +71,7 @@ export const Route = createFileRoute("/api/summarize")({
               {
                 status: 502,
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
           }
 
@@ -76,7 +87,7 @@ export const Route = createFileRoute("/api/summarize")({
               {
                 status: 422,
                 headers: { "Content-Type": "application/json" },
-              }
+              },
             );
           }
 
@@ -110,7 +121,7 @@ export const Route = createFileRoute("/api/summarize")({
             {
               status: 200,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         } catch (error) {
           console.error("[api.summarize] Error during summarization:", error);
@@ -122,7 +133,7 @@ export const Route = createFileRoute("/api/summarize")({
             {
               status: 500,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         }
       },

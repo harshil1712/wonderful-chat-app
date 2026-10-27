@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/_authenticated/image")({ component: ImagePage });
+export const Route = createFileRoute("/_app/image")({ component: ImagePage });
 
 function ImagePage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {

@@ -15,7 +15,15 @@
 	},
 	"ai": {
 		"binding": "AI"
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "wonderful-chat-db",
+			"database_id": "64420cad-3720-4b6f-9f44-81a3f562b0d5",
+			"migrations_dir": "./drizzle"
+		}
+	]
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

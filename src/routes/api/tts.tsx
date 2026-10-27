@@ -2,11 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createWorkersAiTts } from "@cloudflare/tanstack-ai/adapters/workers-ai-tts";
 import { generateSpeech } from "@tanstack/ai";
 import { env } from "cloudflare:workers";
+import { requireSession } from "../../../lib/auth.functions";
 
 export const Route = createFileRoute("/api/tts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Check authentication
+        try {
+          await requireSession();
+        } catch {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         try {
           const body = (await request.json()) as {
             text: string;

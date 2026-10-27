@@ -2,11 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createWorkersAiTranscription } from "@cloudflare/tanstack-ai/adapters/workers-ai-transcription";
 import { generateTranscription } from "@tanstack/ai";
 import { env } from "cloudflare:workers";
+import { requireSession } from "../../../lib/auth.functions";
 
 export const Route = createFileRoute("/api/transcribe")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Check authentication
+        try {
+          await requireSession();
+        } catch {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         try {
           const body = (await request.json()) as {
             audio: string;

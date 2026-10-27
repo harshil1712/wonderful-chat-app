@@ -9,34 +9,40 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PublicRouteImport } from './routes/_public'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as PublicIndexRouteImport } from './routes/_public.index'
-import { Route as ApiTtsRouteImport } from './routes/api.tts'
-import { Route as ApiTranscribeRouteImport } from './routes/api.transcribe'
-import { Route as ApiSummarizeRouteImport } from './routes/api.summarize'
-import { Route as ApiImageRouteImport } from './routes/api.image'
-import { Route as ApiChatRouteImport } from './routes/api.chat'
-import { Route as PublicSignUpRouteImport } from './routes/_public.sign-up'
-import { Route as PublicSignInRouteImport } from './routes/_public.sign-in'
-import { Route as AuthenticatedTtsRouteImport } from './routes/_authenticated.tts'
-import { Route as AuthenticatedTranscribeRouteImport } from './routes/_authenticated.transcribe'
-import { Route as AuthenticatedSummarizeRouteImport } from './routes/_authenticated.summarize'
-import { Route as AuthenticatedImageRouteImport } from './routes/_authenticated.image'
-import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated.chat'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
+import { Route as ApiSummarizeRouteImport } from './routes/api/summarize'
+import { Route as ApiImageRouteImport } from './routes/api/image'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AppTtsRouteImport } from './routes/_app/tts'
+import { Route as AppTranscribeRouteImport } from './routes/_app/transcribe'
+import { Route as AppSummarizeRouteImport } from './routes/_app/summarize'
+import { Route as AppImageRouteImport } from './routes/_app/image'
+import { Route as AppChatRouteImport } from './routes/_app/chat'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 
-const PublicRoute = PublicRouteImport.update({
-  id: '/_public',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicIndexRoute = PublicIndexRouteImport.update({
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => PublicRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTtsRoute = ApiTtsRouteImport.update({
   id: '/api/tts',
@@ -63,172 +69,181 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicSignUpRoute = PublicSignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
-  getParentRoute: () => PublicRoute,
-} as any)
-const PublicSignInRoute = PublicSignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => PublicRoute,
-} as any)
-const AuthenticatedTtsRoute = AuthenticatedTtsRouteImport.update({
+const AppTtsRoute = AppTtsRouteImport.update({
   id: '/tts',
   path: '/tts',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedTranscribeRoute = AuthenticatedTranscribeRouteImport.update({
+const AppTranscribeRoute = AppTranscribeRouteImport.update({
   id: '/transcribe',
   path: '/transcribe',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedSummarizeRoute = AuthenticatedSummarizeRouteImport.update({
+const AppSummarizeRoute = AppSummarizeRouteImport.update({
   id: '/summarize',
   path: '/summarize',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedImageRoute = AuthenticatedImageRouteImport.update({
+const AppImageRoute = AppImageRouteImport.update({
   id: '/image',
   path: '/image',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AppRouteRoute,
 } as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+const AppChatRoute = AppChatRouteImport.update({
   id: '/chat',
   path: '/chat',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof PublicIndexRoute
-  '/chat': typeof AuthenticatedChatRoute
-  '/image': typeof AuthenticatedImageRoute
-  '/summarize': typeof AuthenticatedSummarizeRoute
-  '/transcribe': typeof AuthenticatedTranscribeRoute
-  '/tts': typeof AuthenticatedTtsRoute
-  '/sign-in': typeof PublicSignInRoute
-  '/sign-up': typeof PublicSignUpRoute
+  '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/chat': typeof AppChatRoute
+  '/image': typeof AppImageRoute
+  '/summarize': typeof AppSummarizeRoute
+  '/transcribe': typeof AppTranscribeRoute
+  '/tts': typeof AppTtsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/image': typeof ApiImageRoute
   '/api/summarize': typeof ApiSummarizeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof PublicIndexRoute
-  '/chat': typeof AuthenticatedChatRoute
-  '/image': typeof AuthenticatedImageRoute
-  '/summarize': typeof AuthenticatedSummarizeRoute
-  '/transcribe': typeof AuthenticatedTranscribeRoute
-  '/tts': typeof AuthenticatedTtsRoute
-  '/sign-in': typeof PublicSignInRoute
-  '/sign-up': typeof PublicSignUpRoute
+  '/': typeof IndexRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/chat': typeof AppChatRoute
+  '/image': typeof AppImageRoute
+  '/summarize': typeof AppSummarizeRoute
+  '/transcribe': typeof AppTranscribeRoute
+  '/tts': typeof AppTtsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/image': typeof ApiImageRoute
   '/api/summarize': typeof ApiSummarizeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/_public': typeof PublicRouteWithChildren
-  '/_authenticated/chat': typeof AuthenticatedChatRoute
-  '/_authenticated/image': typeof AuthenticatedImageRoute
-  '/_authenticated/summarize': typeof AuthenticatedSummarizeRoute
-  '/_authenticated/transcribe': typeof AuthenticatedTranscribeRoute
-  '/_authenticated/tts': typeof AuthenticatedTtsRoute
-  '/_public/sign-in': typeof PublicSignInRoute
-  '/_public/sign-up': typeof PublicSignUpRoute
+  '/': typeof IndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
+  '/_app/chat': typeof AppChatRoute
+  '/_app/image': typeof AppImageRoute
+  '/_app/summarize': typeof AppSummarizeRoute
+  '/_app/transcribe': typeof AppTranscribeRoute
+  '/_app/tts': typeof AppTtsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/image': typeof ApiImageRoute
   '/api/summarize': typeof ApiSummarizeRoute
   '/api/transcribe': typeof ApiTranscribeRoute
   '/api/tts': typeof ApiTtsRoute
-  '/_public/': typeof PublicIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/sign-in'
+    | '/sign-up'
     | '/chat'
     | '/image'
     | '/summarize'
     | '/transcribe'
     | '/tts'
-    | '/sign-in'
-    | '/sign-up'
     | '/api/chat'
     | '/api/image'
     | '/api/summarize'
     | '/api/transcribe'
     | '/api/tts'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/sign-in'
+    | '/sign-up'
     | '/chat'
     | '/image'
     | '/summarize'
     | '/transcribe'
     | '/tts'
-    | '/sign-in'
-    | '/sign-up'
     | '/api/chat'
     | '/api/image'
     | '/api/summarize'
     | '/api/transcribe'
     | '/api/tts'
+    | '/api/auth/$'
   id:
     | '__root__'
-    | '/_authenticated'
-    | '/_public'
-    | '/_authenticated/chat'
-    | '/_authenticated/image'
-    | '/_authenticated/summarize'
-    | '/_authenticated/transcribe'
-    | '/_authenticated/tts'
-    | '/_public/sign-in'
-    | '/_public/sign-up'
+    | '/'
+    | '/_app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/_app/chat'
+    | '/_app/image'
+    | '/_app/summarize'
+    | '/_app/transcribe'
+    | '/_app/tts'
     | '/api/chat'
     | '/api/image'
     | '/api/summarize'
     | '/api/transcribe'
     | '/api/tts'
-    | '/_public/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  PublicRoute: typeof PublicRouteWithChildren
+  IndexRoute: typeof IndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiImageRoute: typeof ApiImageRoute
   ApiSummarizeRoute: typeof ApiSummarizeRoute
   ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiTtsRoute: typeof ApiTtsRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_public': {
-      id: '/_public'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof PublicRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_public/': {
-      id: '/_public/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof PublicIndexRouteImport
-      parentRoute: typeof PublicRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/tts': {
       id: '/api/tts'
@@ -265,101 +280,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_public/sign-up': {
-      id: '/_public/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof PublicSignUpRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_public/sign-in': {
-      id: '/_public/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof PublicSignInRouteImport
-      parentRoute: typeof PublicRoute
-    }
-    '/_authenticated/tts': {
-      id: '/_authenticated/tts'
+    '/_app/tts': {
+      id: '/_app/tts'
       path: '/tts'
       fullPath: '/tts'
-      preLoaderRoute: typeof AuthenticatedTtsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AppTtsRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/transcribe': {
-      id: '/_authenticated/transcribe'
+    '/_app/transcribe': {
+      id: '/_app/transcribe'
       path: '/transcribe'
       fullPath: '/transcribe'
-      preLoaderRoute: typeof AuthenticatedTranscribeRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AppTranscribeRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/summarize': {
-      id: '/_authenticated/summarize'
+    '/_app/summarize': {
+      id: '/_app/summarize'
       path: '/summarize'
       fullPath: '/summarize'
-      preLoaderRoute: typeof AuthenticatedSummarizeRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AppSummarizeRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/image': {
-      id: '/_authenticated/image'
+    '/_app/image': {
+      id: '/_app/image'
       path: '/image'
       fullPath: '/image'
-      preLoaderRoute: typeof AuthenticatedImageRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AppImageRouteImport
+      parentRoute: typeof AppRouteRoute
     }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
+    '/_app/chat': {
+      id: '/_app/chat'
       path: '/chat'
       fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
-  AuthenticatedImageRoute: typeof AuthenticatedImageRoute
-  AuthenticatedSummarizeRoute: typeof AuthenticatedSummarizeRoute
-  AuthenticatedTranscribeRoute: typeof AuthenticatedTranscribeRoute
-  AuthenticatedTtsRoute: typeof AuthenticatedTtsRoute
+interface AppRouteRouteChildren {
+  AppChatRoute: typeof AppChatRoute
+  AppImageRoute: typeof AppImageRoute
+  AppSummarizeRoute: typeof AppSummarizeRoute
+  AppTranscribeRoute: typeof AppTranscribeRoute
+  AppTtsRoute: typeof AppTtsRoute
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedChatRoute: AuthenticatedChatRoute,
-  AuthenticatedImageRoute: AuthenticatedImageRoute,
-  AuthenticatedSummarizeRoute: AuthenticatedSummarizeRoute,
-  AuthenticatedTranscribeRoute: AuthenticatedTranscribeRoute,
-  AuthenticatedTtsRoute: AuthenticatedTtsRoute,
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppChatRoute: AppChatRoute,
+  AppImageRoute: AppImageRoute,
+  AppSummarizeRoute: AppSummarizeRoute,
+  AppTranscribeRoute: AppTranscribeRoute,
+  AppTtsRoute: AppTtsRoute,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
 )
 
-interface PublicRouteChildren {
-  PublicSignInRoute: typeof PublicSignInRoute
-  PublicSignUpRoute: typeof PublicSignUpRoute
-  PublicIndexRoute: typeof PublicIndexRoute
-}
-
-const PublicRouteChildren: PublicRouteChildren = {
-  PublicSignInRoute: PublicSignInRoute,
-  PublicSignUpRoute: PublicSignUpRoute,
-  PublicIndexRoute: PublicIndexRoute,
-}
-
-const PublicRouteWithChildren =
-  PublicRoute._addFileChildren(PublicRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  PublicRoute: PublicRouteWithChildren,
+  IndexRoute: IndexRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
   ApiChatRoute: ApiChatRoute,
   ApiImageRoute: ApiImageRoute,
   ApiSummarizeRoute: ApiSummarizeRoute,
   ApiTranscribeRoute: ApiTranscribeRoute,
   ApiTtsRoute: ApiTtsRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

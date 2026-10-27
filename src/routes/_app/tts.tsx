@@ -4,7 +4,7 @@ import UnifiedInput from "@/components/UnifiedInput";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Label, Surface } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/_authenticated/tts")({ component: TTSPage });
+export const Route = createFileRoute("/_app/tts")({ component: TTSPage });
 
 function TTSPage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {

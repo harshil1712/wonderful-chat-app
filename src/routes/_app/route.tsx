@@ -1,8 +1,20 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { getSession } from "lib/auth.functions";
 
-export const Route = createFileRoute("/_authenticated")({
+export const Route = createFileRoute("/_app")({
+  beforeLoad: async () => {
+    try {
+      const session = await getSession();
+      if (!session) {
+        throw redirect({ to: "/sign-in" });
+      }
+      return { session };
+    } catch (error) {
+      throw redirect({ to: "/sign-in" });
+    }
+  },
   component: AuthenticatedLayout,
 });
 

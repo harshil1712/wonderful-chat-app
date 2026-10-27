@@ -1,4 +1,5 @@
 import { Surface } from "@cloudflare/kumo";
+import { Link } from "@tanstack/react-router";
 
 export default function Header() {
   return (
@@ -26,7 +27,7 @@ export default function Header() {
                 letterSpacing: "0.05em",
               }}
             >
-              Wonderful Chat
+              <Link to="/">Wonderful Chat</Link>
             </h1>
           </div>
         </div>

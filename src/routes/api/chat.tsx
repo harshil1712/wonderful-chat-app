@@ -7,11 +7,22 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 import { getModelById } from "@/config/models";
+import { requireSession } from "../../../lib/auth.functions";
 
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Check authentication
+        try {
+          await requireSession();
+        } catch {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
         const body = (await request.json()) as any;
         const { messages, data } = body;
         const modelId = data?.model;

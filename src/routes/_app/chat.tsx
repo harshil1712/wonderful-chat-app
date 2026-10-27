@@ -6,7 +6,7 @@ import { useChat, fetchServerSentEvents } from "@tanstack/ai-react";
 import { getModelsForCapability, getDefaultModelId } from "@/config/models";
 import { Surface, Badge, Loader } from "@cloudflare/kumo";
 
-export const Route = createFileRoute("/_authenticated/chat")({ component: ChatPage });
+export const Route = createFileRoute("/_app/chat")({ component: ChatPage });
 
 function ChatPage() {
   const [selectedModel, setSelectedModel] = useState<string>(() => {
